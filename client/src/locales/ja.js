@@ -7,6 +7,8 @@ export default {
     finance: '財務',
     demandForecast: '需要予測',
     restocking: '補充',
+    reports: 'レポート',
+    backlog: 'バックログ',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -245,6 +247,65 @@ export default {
     refreshing: '推奨事項を更新中...'
   },
 
+  // Reports
+  reports: {
+    title: 'パフォーマンスレポート',
+    description: '四半期のパフォーマンス指標と月次トレンドを表示',
+    quarterly: {
+      title: '四半期パフォーマンス',
+      quarter: '四半期',
+      totalOrders: '総注文数',
+      totalRevenue: '総売上高',
+      avgOrderValue: '平均注文金額',
+      fulfillmentRate: '充足率'
+    },
+    monthlyTrend: {
+      title: '月次売上トレンド'
+    },
+    monthlyAnalysis: {
+      title: '前月比分析',
+      month: '月',
+      orders: '注文数',
+      revenue: '売上高',
+      change: '変化',
+      growthRate: '成長率'
+    },
+    summary: {
+      totalRevenueYtd: '総売上高（年初来）',
+      avgMonthlyRevenue: '平均月間売上高',
+      totalOrdersYtd: '総注文数（年初来）',
+      bestQuarter: '最高業績四半期'
+    },
+    loading: 'レポートを読み込み中...',
+    error: 'レポートの読み込みに失敗しました'
+  },
+
+  // Backlog
+  backlog: {
+    title: 'バックログ管理',
+    description: '在庫不足を追跡して解決',
+    highPriority: '高優先度',
+    mediumPriority: '中優先度',
+    lowPriority: '低優先度',
+    totalItems: 'バックログ品目総数',
+    tableTitle: 'バックログ品目',
+    noItems: 'バックログ品目はありません - すべての注文を履行できます！',
+    table: {
+      orderId: '注文ID',
+      sku: 'SKU',
+      itemName: '品目名',
+      quantityNeeded: '必要数量',
+      quantityAvailable: '利用可能数量',
+      shortage: '不足',
+      unitsShort: '{count}個不足',
+      daysDelayed: '遅延日数',
+      days: '{count}日',
+      priority: '優先度'
+    },
+    loading: 'バックログを読み込み中...',
+    error: 'バックログの読み込みに失敗しました'
+  },
+
   // Filters
   filters: {
     timePeriod: '期間',
@@ -427,6 +488,9 @@ export default {
     'Multi Layer PCB Assembly': '多層PCB組立',
     'Temperature Sensor Module': '温度センサーモジュール',
     'Humidity Sensor Module': '湿度センサーモジュール',
+    'Servo Motor Assembly': 'サーボモータ組立',
+    'LED Indicator Assembly': 'LEDインジケーター組立',
+    'Stepper Motor Unit': 'ステッピングモータユニット',
     'Pressure Sensor Module': '圧力センサーモジュール',
     'Proximity Sensor': '近接センサー',
     'Ultrasonic Distance Sensor': '超音波距離センサー',

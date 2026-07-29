@@ -312,11 +312,24 @@ def get_demand_forecasts():
     return demand_forecasts
 
 @app.get("/api/backlog", response_model=List[BacklogItem])
-def get_backlog():
-    """Get backlog items with purchase order status"""
-    # Add has_purchase_order flag and purchase_order_id to each backlog item
+def get_backlog(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None
+):
+    """Get backlog items with purchase order status, optionally filtered by
+    warehouse/category via the order each backlog item references (backlog
+    items have no warehouse/category of their own, and their SKU is not
+    guaranteed to exist in the current inventory catalog)"""
+    orders_by_id = {order["id"]: order for order in orders}
+
     result = []
     for item in backlog_items:
+        order = orders_by_id.get(item["order_id"])
+        if warehouse and warehouse != 'all' and (not order or order.get('warehouse') != warehouse):
+            continue
+        if category and category != 'all' and (not order or order.get('category', '').lower() != category.lower()):
+            continue
+
         item_dict = dict(item)
         # Check if this backlog item has a purchase order
         matching_po = next((po for po in purchase_orders if po["backlog_item_id"] == item["id"]), None)
@@ -374,12 +387,20 @@ def get_recent_transactions():
     return recent_transactions
 
 @app.get("/api/reports/quarterly")
-def get_quarterly_reports():
-    """Get quarterly performance reports"""
+def get_quarterly_reports(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None
+):
+    """Get quarterly performance reports with optional filtering"""
     # Calculate quarterly statistics from orders
     quarters = {}
 
-    for order in orders:
+    filtered_orders = apply_filters(orders, warehouse, category, status)
+    filtered_orders = filter_by_month(filtered_orders, month)
+
+    for order in filtered_orders:
         order_date = order.get('order_date', '')
         # Determine quarter
         if '2025-01' in order_date or '2025-02' in order_date or '2025-03' in order_date:
@@ -420,11 +441,19 @@ def get_quarterly_reports():
     return result
 
 @app.get("/api/reports/monthly-trends")
-def get_monthly_trends():
-    """Get month-over-month trends"""
+def get_monthly_trends(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None
+):
+    """Get month-over-month trends with optional filtering"""
     months = {}
 
-    for order in orders:
+    filtered_orders = apply_filters(orders, warehouse, category, status)
+    filtered_orders = filter_by_month(filtered_orders, month)
+
+    for order in filtered_orders:
         order_date = order.get('order_date', '')
         if not order_date:
             continue

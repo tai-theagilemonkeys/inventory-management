@@ -7,6 +7,8 @@ export default {
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
     restocking: 'Restocking',
+    reports: 'Reports',
+    backlog: 'Backlog',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
   },
@@ -243,6 +245,65 @@ export default {
     noRecommendations: 'No restock recommendations for the current budget',
     noCandidates: 'No items need restocking for the current filters',
     refreshing: 'Updating recommendations...'
+  },
+
+  // Reports
+  reports: {
+    title: 'Performance Reports',
+    description: 'View quarterly performance metrics and monthly trends',
+    quarterly: {
+      title: 'Quarterly Performance',
+      quarter: 'Quarter',
+      totalOrders: 'Total Orders',
+      totalRevenue: 'Total Revenue',
+      avgOrderValue: 'Avg Order Value',
+      fulfillmentRate: 'Fulfillment Rate'
+    },
+    monthlyTrend: {
+      title: 'Monthly Revenue Trend'
+    },
+    monthlyAnalysis: {
+      title: 'Month-over-Month Analysis',
+      month: 'Month',
+      orders: 'Orders',
+      revenue: 'Revenue',
+      change: 'Change',
+      growthRate: 'Growth Rate'
+    },
+    summary: {
+      totalRevenueYtd: 'Total Revenue (YTD)',
+      avgMonthlyRevenue: 'Avg Monthly Revenue',
+      totalOrdersYtd: 'Total Orders (YTD)',
+      bestQuarter: 'Best Performing Quarter'
+    },
+    loading: 'Loading reports...',
+    error: 'Failed to load reports'
+  },
+
+  // Backlog
+  backlog: {
+    title: 'Backlog Management',
+    description: 'Track and resolve inventory shortages',
+    highPriority: 'High Priority',
+    mediumPriority: 'Medium Priority',
+    lowPriority: 'Low Priority',
+    totalItems: 'Total Backlog Items',
+    tableTitle: 'Backlog Items',
+    noItems: 'No backlog items - all orders can be fulfilled!',
+    table: {
+      orderId: 'Order ID',
+      sku: 'SKU',
+      itemName: 'Item Name',
+      quantityNeeded: 'Quantity Needed',
+      quantityAvailable: 'Quantity Available',
+      shortage: 'Shortage',
+      unitsShort: '{count} units short',
+      daysDelayed: 'Days Delayed',
+      days: '{count} days',
+      priority: 'Priority'
+    },
+    loading: 'Loading backlog...',
+    error: 'Failed to load backlog'
   },
 
   // Filters
