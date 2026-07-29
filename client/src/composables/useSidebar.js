@@ -37,7 +37,10 @@ if (mediaQuery) {
   mediaQuery.addEventListener('change', (event) => {
     if (event.matches) {
       isCollapsed.value = true
-      persist(true)
+      // Deliberately not persisted: this is a viewport default, not a user
+      // choice. Persisting here would let it masquerade as an explicit
+      // preference and stay collapsed forever once triggered, even after
+      // resizing back to a wide viewport.
     }
   })
 }
