@@ -61,10 +61,17 @@ class TestBacklogFiltering:
 
     def test_get_backlog_by_warehouse_and_category(self, client):
         """Combined filters should narrow results without emptying them for a valid combination."""
+        orders_by_id = {o["id"]: o for o in client.get("/api/orders").json()}
+
         response = client.get("/api/backlog?warehouse=San Francisco&category=Actuators")
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
+
+        assert len(data) > 0
+        for item in data:
+            order = orders_by_id[item["order_id"]]
+            assert order["warehouse"] == "San Francisco"
+            assert order["category"].lower() == "actuators"
 
     def test_get_backlog_filter_excludes_non_matching(self, client):
         """A filter that matches no backlog item's order should return an empty list, not an error."""

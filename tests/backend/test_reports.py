@@ -36,10 +36,13 @@ class TestQuarterlyReportsEndpoint:
 
     def test_quarterly_reports_by_category(self, client):
         """Filtering by category should only aggregate orders from that category."""
-        response = client.get("/api/reports/quarterly?category=Sensors")
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list)
+        unfiltered = client.get("/api/reports/quarterly").json()
+        filtered = client.get("/api/reports/quarterly?category=Sensors").json()
+
+        unfiltered_total = sum(q["total_orders"] for q in unfiltered)
+        filtered_total = sum(q["total_orders"] for q in filtered)
+        assert filtered_total <= unfiltered_total
+        assert filtered_total > 0
 
     def test_quarterly_reports_by_status(self, client):
         """Filtering by status should only aggregate orders with that status."""

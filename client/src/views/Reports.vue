@@ -134,7 +134,7 @@ import { formatCurrency } from '../utils/currency'
 export default {
   name: 'Reports',
   setup() {
-    const { t, currentCurrency } = useI18n()
+    const { t, currentCurrency, currentLocale } = useI18n()
 
     const {
       selectedPeriod,
@@ -199,16 +199,17 @@ export default {
     })
 
     const formatMonth = (monthStr) => {
-      // Convert YYYY-MM to readable format
+      // Convert YYYY-MM to a locale-aware readable format
       const parts = monthStr.split('-')
-      const year = parts[0]
-      const month = parts[1]
+      const year = parseInt(parts[0], 10)
+      const monthIndex = parseInt(parts[1], 10) - 1
 
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      const monthIndex = parseInt(month, 10) - 1
-
-      if (!isNaN(monthIndex) && monthIndex >= 0 && monthIndex <= 11) {
-        return `${monthNames[monthIndex]} ${year}`
+      if (!isNaN(year) && !isNaN(monthIndex) && monthIndex >= 0 && monthIndex <= 11) {
+        const locale = currentLocale.value === 'ja' ? 'ja-JP' : 'en-US'
+        return new Date(year, monthIndex, 1).toLocaleDateString(locale, {
+          year: 'numeric',
+          month: 'short'
+        })
       }
       return monthStr
     }
