@@ -1,0 +1,18 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case \"$f\" in */client/*) (cd \"$(git rev-parse --show-toplevel)/client\" && npx prettier --write \"$f\");; esac; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
