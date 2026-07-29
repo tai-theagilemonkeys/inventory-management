@@ -113,6 +113,12 @@ export default {
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
     quantity: 'Qty',
+    itemsPanel: {
+      item: 'Item',
+      unitCost: 'Unit Cost',
+      lineTotal: 'Line Total',
+      total: 'Total'
+    },
     table: {
       orderNumber: 'Order Number',
       orderId: 'Order ID',

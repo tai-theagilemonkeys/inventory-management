@@ -113,6 +113,12 @@ export default {
     onTimeDelivery: '定時配達',
     itemsCount: '{count}件',
     quantity: '数量',
+    itemsPanel: {
+      item: '品目',
+      unitCost: '単価',
+      lineTotal: '小計',
+      total: '合計'
+    },
     table: {
       orderNumber: '注文番号',
       orderId: '注文ID',

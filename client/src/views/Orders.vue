@@ -45,31 +45,52 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="order in orders" :key="order.id">
-                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
-                <td class="col-customer">{{ translateCustomerName(order.customer) }}</td>
-                <td class="col-items">
-                  <details class="items-details">
-                    <summary class="items-summary">
-                      {{ t('orders.itemsCount', { count: order.items.length }) }}
-                    </summary>
-                    <div class="items-dropdown">
-                      <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
-                        <span class="item-name">{{ translateProductName(item.name) }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ currencySymbol }}{{ item.unit_price }}</span>
+              <template v-for="order in orders" :key="order.id">
+                <tr>
+                  <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                  <td class="col-customer">{{ translateCustomerName(order.customer) }}</td>
+                  <td class="col-items">
+                    <details class="items-details" @toggle="onItemsToggle(order.id, $event)">
+                      <summary class="items-summary">
+                        {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      </summary>
+                    </details>
+                  </td>
+                  <td class="col-status">
+                    <span :class="['badge', getOrderStatusClass(order.status)]">
+                      {{ t(`status.${order.status.toLowerCase()}`) }}
+                    </span>
+                  </td>
+                  <td class="col-date">{{ formatDate(order.order_date) }}</td>
+                  <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
+                  <td class="col-value"><strong>{{ formatCurrency(order.total_value, currentCurrency) }}</strong></td>
+                </tr>
+                <tr v-if="expandedOrderIds.has(order.id)" class="items-expanded-row">
+                  <td colspan="7" class="items-expanded-cell">
+                    <div class="items-panel">
+                      <div class="items-panel-header">
+                        <span>{{ t('orders.itemsPanel.item') }}</span>
+                        <span class="items-panel-align-right">{{ t('orders.quantity') }}</span>
+                        <span class="items-panel-align-right">{{ t('orders.itemsPanel.unitCost') }}</span>
+                        <span class="items-panel-align-right">{{ t('orders.itemsPanel.lineTotal') }}</span>
+                      </div>
+                      <div v-for="item in order.items" :key="item.sku" class="items-panel-row">
+                        <div class="items-panel-item-info">
+                          <span class="items-panel-item-name">{{ translateProductName(item.name) }}</span>
+                          <span class="items-panel-item-sku">{{ item.sku }}</span>
+                        </div>
+                        <span class="items-panel-qty">{{ item.quantity }}</span>
+                        <span class="items-panel-qty">{{ formatCurrency(item.unit_price, currentCurrency) }}</span>
+                        <span class="items-panel-line-total">{{ formatCurrency(item.quantity * item.unit_price, currentCurrency) }}</span>
+                      </div>
+                      <div class="items-panel-footer">
+                        <span>{{ t('orders.itemsPanel.total') }}</span>
+                        <span class="items-panel-footer-value">{{ formatCurrency(order.total_value, currentCurrency) }}</span>
                       </div>
                     </div>
-                  </details>
-                </td>
-                <td class="col-status">
-                  <span :class="['badge', getOrderStatusClass(order.status)]">
-                    {{ t(`status.${order.status.toLowerCase()}`) }}
-                  </span>
-                </td>
-                <td class="col-date">{{ formatDate(order.order_date) }}</td>
-                <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value"><strong>{{ currencySymbol }}{{ order.total_value.toLocaleString() }}</strong></td>
-              </tr>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>
@@ -100,7 +121,7 @@
                 <tr>
                   <td class="col-submitted-order-number"><strong>{{ order.order_number }}</strong></td>
                   <td class="col-submitted-items">
-                    <details class="items-details" @toggle="onItemsToggle(order.id, $event)">
+                    <details class="items-details" @toggle="onSubmittedItemsToggle(order.id, $event)">
                       <summary class="items-summary">
                         {{ t('orders.itemsCount', { count: order.items.length }) }}
                       </summary>
@@ -114,7 +135,7 @@
                   <td class="col-submitted-lead-time">{{ t('orders.submittedOrders.table.days', { count: order.lead_time_days }) }}</td>
                   <td class="col-submitted-date">{{ formatDate(order.expected_delivery) }}</td>
                 </tr>
-                <tr v-if="expandedOrderIds.has(order.id)" class="items-expanded-row">
+                <tr v-if="expandedSubmittedOrderIds.has(order.id)" class="items-expanded-row">
                   <td colspan="7" class="items-expanded-cell">
                     <div class="items-panel">
                       <div class="items-panel-header">
@@ -149,7 +170,7 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
@@ -160,24 +181,28 @@ export default {
   setup() {
     const { t, currentCurrency, translateProductName, translateCustomerName } = useI18n()
 
-    const currencySymbol = computed(() => {
-      return currentCurrency.value === 'JPY' ? '¥' : '$'
-    })
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
     const submittedOrders = ref([])
 
-    // Tracks which submitted restocking orders have their line items expanded
+    // Tracks which orders have their line items expanded. Kept as two separate
+    // sets (rather than one shared set) because restock order IDs are generated
+    // independently from regular order IDs and can collide (e.g. both "1"),
+    // which would otherwise expand unrelated rows across the two tables together.
     const expandedOrderIds = reactive(new Set())
+    const expandedSubmittedOrderIds = reactive(new Set())
 
-    const onItemsToggle = (orderId, event) => {
+    const toggleExpanded = (set, orderId, event) => {
       if (event.target.open) {
-        expandedOrderIds.add(orderId)
+        set.add(orderId)
       } else {
-        expandedOrderIds.delete(orderId)
+        set.delete(orderId)
       }
     }
+
+    const onItemsToggle = (orderId, event) => toggleExpanded(expandedOrderIds, orderId, event)
+    const onSubmittedItemsToggle = (orderId, event) => toggleExpanded(expandedSubmittedOrderIds, orderId, event)
 
     // Use shared filters
     const {
@@ -257,11 +282,12 @@ export default {
       orders,
       submittedOrders,
       expandedOrderIds,
+      expandedSubmittedOrderIds,
       onItemsToggle,
+      onSubmittedItemsToggle,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
-      currencySymbol,
       currentCurrency,
       formatCurrency,
       translateProductName,
@@ -336,45 +362,6 @@ export default {
 .items-summary:hover {
   color: #2563eb;
   text-decoration: underline;
-}
-
-/* Dropdown container */
-.items-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 0.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 0.75rem;
-  z-index: 10;
-  min-width: 300px;
-  max-width: 400px;
-}
-
-.item-entry {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.item-entry:last-child {
-  border-bottom: none;
-}
-
-.item-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #0f172a;
-}
-
-.item-meta {
-  font-size: 0.813rem;
-  color: #64748b;
 }
 
 /* Submitted Restocking Orders table */
