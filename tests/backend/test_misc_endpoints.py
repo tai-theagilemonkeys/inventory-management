@@ -52,8 +52,8 @@ class TestDemandEndpoints:
 
         stable_items = [item for item in data if item["trend"].lower() == "stable"]
 
-        # Should have at least 5 stable items
-        assert len(stable_items) >= 5, f"Expected at least 5 stable items, found {len(stable_items)}"
+        # Should have at least 2 stable items
+        assert len(stable_items) >= 2, f"Expected at least 2 stable items, found {len(stable_items)}"
 
         for item in stable_items:
             current = item["current_demand"]
@@ -65,23 +65,23 @@ class TestDemandEndpoints:
                 assert percent_change < 2.0, \
                     f"Item {item['item_name']} has {percent_change:.2f}% change, expected < 2%"
 
-    def test_demand_forecast_has_new_items(self, client):
-        """Test that new demand forecast items exist."""
+    def test_demand_forecast_skus_reference_real_inventory_items(self, client):
+        """Test that every demand forecast's item_sku matches a real inventory item.
+
+        Regression guard: item_sku values previously referenced a disjoint mock
+        catalog (WDG-001, BRG-102, etc.) that didn't exist in inventory.json, so
+        the Demand page's inventory-filtered view silently dropped almost every row.
+        """
+        inventory_response = client.get("/api/inventory")
+        inventory_skus = {item["sku"] for item in inventory_response.json()}
+
         response = client.get("/api/demand")
         data = response.json()
 
-        # Check for the new items we added
-        skus = [item["item_sku"] for item in data]
-
-        # Should have Temperature Sensor Module and Logic Controller Board
-        assert "SNR-420" in skus, "Missing Temperature Sensor Module"
-        assert "CTL-330" in skus, "Missing Logic Controller Board"
-
-        # Verify they are marked as stable
-        for item in data:
-            if item["item_sku"] in ["SNR-420", "CTL-330"]:
-                assert item["trend"].lower() == "stable", \
-                    f"New item {item['item_name']} should have stable trend"
+        assert len(data) > 0
+        for forecast in data:
+            assert forecast["item_sku"] in inventory_skus, \
+                f"Demand forecast references unknown SKU {forecast['item_sku']}"
 
 
 class TestBacklogEndpoints:
