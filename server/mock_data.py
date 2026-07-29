@@ -35,6 +35,9 @@ recent_transactions = load_json_file('transactions.json')
 # Load purchase orders
 purchase_orders = load_json_file('purchase_orders.json')
 
+# Load tasks
+tasks = load_json_file('tasks.json')
+
 # Load restocking orders
 restock_orders = load_json_file('restock_orders.json')
 
