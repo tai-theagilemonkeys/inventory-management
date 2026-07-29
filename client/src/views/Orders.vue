@@ -74,15 +74,86 @@
           </table>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">{{ t('orders.submittedOrders.title') }}</h3>
+        </div>
+        <div v-if="submittedOrders.length === 0" class="empty-state">
+          {{ t('orders.submittedOrders.empty') }}
+        </div>
+        <div v-else class="table-container">
+          <table class="submitted-orders-table">
+            <thead>
+              <tr>
+                <th class="col-submitted-order-number">{{ t('orders.submittedOrders.table.orderNumber') }}</th>
+                <th class="col-submitted-items">{{ t('orders.submittedOrders.table.items') }}</th>
+                <th class="col-submitted-status">{{ t('orders.table.status') }}</th>
+                <th class="col-submitted-total-cost col-numeric">{{ t('orders.submittedOrders.table.totalCost') }}</th>
+                <th class="col-submitted-date">{{ t('orders.submittedOrders.table.orderDate') }}</th>
+                <th class="col-submitted-lead-time">{{ t('orders.submittedOrders.table.leadTime') }}</th>
+                <th class="col-submitted-date">{{ t('orders.submittedOrders.table.expectedDelivery') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="order in submittedOrders" :key="order.id">
+                <tr>
+                  <td class="col-submitted-order-number"><strong>{{ order.order_number }}</strong></td>
+                  <td class="col-submitted-items">
+                    <details class="items-details" @toggle="onItemsToggle(order.id, $event)">
+                      <summary class="items-summary">
+                        {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      </summary>
+                    </details>
+                  </td>
+                  <td class="col-submitted-status">
+                    <span class="badge info">{{ t('status.submitted') }}</span>
+                  </td>
+                  <td class="col-submitted-total-cost col-numeric"><strong>{{ formatCurrency(order.total_cost, currentCurrency) }}</strong></td>
+                  <td class="col-submitted-date">{{ formatDate(order.order_date) }}</td>
+                  <td class="col-submitted-lead-time">{{ t('orders.submittedOrders.table.days', { count: order.lead_time_days }) }}</td>
+                  <td class="col-submitted-date">{{ formatDate(order.expected_delivery) }}</td>
+                </tr>
+                <tr v-if="expandedOrderIds.has(order.id)" class="items-expanded-row">
+                  <td colspan="7" class="items-expanded-cell">
+                    <div class="items-panel">
+                      <div class="items-panel-header">
+                        <span>{{ t('orders.submittedOrders.itemsPanel.item') }}</span>
+                        <span>{{ t('orders.submittedOrders.itemsPanel.category') }}</span>
+                        <span class="items-panel-align-right">{{ t('orders.submittedOrders.itemsPanel.unitCost') }}</span>
+                        <span class="items-panel-align-right">{{ t('orders.submittedOrders.itemsPanel.lineTotal') }}</span>
+                      </div>
+                      <div v-for="item in order.items" :key="item.sku" class="items-panel-row">
+                        <div class="items-panel-item-info">
+                          <span class="items-panel-item-name">{{ translateProductName(item.name) }}</span>
+                          <span class="items-panel-item-sku">{{ item.sku }}</span>
+                        </div>
+                        <span class="category-tag">{{ item.category }}</span>
+                        <span class="items-panel-qty">{{ item.quantity }} &times; {{ formatCurrency(item.unit_cost, currentCurrency) }}</span>
+                        <span class="items-panel-line-total">{{ formatCurrency(item.line_total, currentCurrency) }}</span>
+                      </div>
+                      <div class="items-panel-footer">
+                        <span>{{ t('orders.submittedOrders.itemsPanel.total') }}</span>
+                        <span class="items-panel-footer-value">{{ formatCurrency(order.total_cost, currentCurrency) }}</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrency } from '../utils/currency'
 
 export default {
   name: 'Orders',
@@ -95,6 +166,18 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+    const submittedOrders = ref([])
+
+    // Tracks which submitted restocking orders have their line items expanded
+    const expandedOrderIds = reactive(new Set())
+
+    const onItemsToggle = (orderId, event) => {
+      if (event.target.open) {
+        expandedOrderIds.add(orderId)
+      } else {
+        expandedOrderIds.delete(orderId)
+      }
+    }
 
     // Use shared filters
     const {
@@ -129,6 +212,15 @@ export default {
       loadOrders()
     })
 
+    // Submitted restocking orders are intentionally unfiltered - loaded once on mount
+    const loadSubmittedOrders = async () => {
+      try {
+        submittedOrders.value = await api.getRestockOrders()
+      } catch (err) {
+        console.error('Failed to load submitted restocking orders:', err)
+      }
+    }
+
     const getOrdersByStatus = (status) => {
       return orders.value.filter(order => order.status === status)
     }
@@ -153,17 +245,25 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    onMounted(() => {
+      loadOrders()
+      loadSubmittedOrders()
+    })
 
     return {
       t,
       loading,
       error,
       orders,
+      submittedOrders,
+      expandedOrderIds,
+      onItemsToggle,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
       currencySymbol,
+      currentCurrency,
+      formatCurrency,
       translateProductName,
       translateCustomerName
     }
@@ -275,5 +375,158 @@ export default {
 .item-meta {
   font-size: 0.813rem;
   color: #64748b;
+}
+
+/* Submitted Restocking Orders table */
+.submitted-orders-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.col-submitted-order-number {
+  width: 130px;
+}
+
+.col-submitted-items {
+  width: 140px;
+}
+
+.col-submitted-status {
+  width: 120px;
+}
+
+.col-submitted-total-cost {
+  width: 130px;
+}
+
+.col-submitted-date {
+  width: 140px;
+}
+
+.col-submitted-lead-time {
+  width: 110px;
+}
+
+.col-numeric {
+  text-align: right;
+}
+
+/* Expanded items row - spans the full table width so the panel is never
+   clipped by an ancestor's overflow, unlike the old absolutely-positioned
+   dropdown. */
+.items-expanded-row:hover {
+  background: transparent;
+}
+
+.items-expanded-cell {
+  padding: 0 !important;
+  border-top: none !important;
+}
+
+.items-panel {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin: 0.5rem 0 0.75rem 0;
+  padding: 0.25rem 1rem;
+}
+
+.items-panel-header,
+.items-panel-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) minmax(120px, 1fr) minmax(160px, 1fr) minmax(120px, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+
+.items-panel-header {
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.items-panel-row {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.items-panel-row:last-of-type {
+  border-bottom: none;
+}
+
+.items-panel-align-right {
+  text-align: right;
+}
+
+.items-panel-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.items-panel-item-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.items-panel-item-sku {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.category-tag {
+  display: inline-block;
+  align-self: start;
+  padding: 0.188rem 0.625rem;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  justify-self: start;
+}
+
+.items-panel-qty {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-align: right;
+}
+
+.items-panel-line-total {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+}
+
+.items-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 0 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.items-panel-footer-value {
+  min-width: 100px;
+  text-align: right;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.938rem;
 }
 </style>
