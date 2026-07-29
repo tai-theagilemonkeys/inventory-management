@@ -1,6 +1,6 @@
 ---
 name: ux-reviewer
-description: UI/UX design review for information hierarchy, data density, and visual consistency
+description: UI/UX design review for information hierarchy, data density, and visual consistency (not code correctness/logic -- use code-reviewer for that)
 tools: Read, Grep, Glob
 model: sonnet
 color: pink
