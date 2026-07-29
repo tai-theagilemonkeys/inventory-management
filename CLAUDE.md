@@ -33,8 +33,9 @@ Use the Task tool with these specialized subagents for appropriate tasks:
 ## Quick Start
 
 ```bash
-# Backend
+# Backend (also: ./scripts/start.sh runs both, ./scripts/stop.sh stops both)
 cd server
+uv venv && uv sync
 uv run python main.py
 
 # Frontend
@@ -42,18 +43,42 @@ cd client
 npm install && npm run dev
 ```
 
+## Testing
+
+Backend tests only (no frontend test suite exists yet). See the **backend-api-test** skill before writing/editing tests.
+
+```bash
+cd tests
+uv run pytest -v                                                    # all tests
+uv run pytest backend/test_inventory.py -v                         # one file
+uv run pytest backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory -v  # one test
+```
+
+## Production Build
+
+```bash
+cd client
+npm run build   # outputs client/dist/
+```
+
 ## Key Patterns
 
 **Filter System**: 4 filters (Time Period, Warehouse, Category, Order Status) apply to all data via query params
 **Data Flow**: Vue filters → `client/src/api.js` → FastAPI → In-memory filtering → Pydantic validation → Computed properties
 **Reactivity**: Raw data in refs (`allOrders`, `inventoryItems`), derived data in computed properties
+**Shared Filter State**: `client/src/composables/useFilters.js` holds filter refs as module-level singletons (not per-component state), so every view shares one filter selection
+**Routing**: Plain `vue-router` route table in `client/src/main.js` — one route per view in `client/src/views/`, no nested/dynamic routes
+**i18n**: `useI18n.js` composable + `client/src/locales/{en,ja}.js` — add new UI strings to both locale files
 
 ## API Endpoints
-- `GET /api/inventory` - Filters: warehouse, category
-- `GET /api/orders` - Filters: warehouse, category, status, month
+- `GET /api/inventory`, `/api/inventory/{id}` - Filters: warehouse, category
+- `GET /api/orders`, `/api/orders/{id}` - Filters: warehouse, category, status, month
 - `GET /api/dashboard/summary` - All filters
-- `GET /api/demand`, `/api/backlog` - No filters
+- `GET /api/demand`, `/api/backlog` - No filters (backlog includes a `has_purchase_order` flag)
 - `GET /api/spending/*` - Summary, monthly, categories, transactions
+- `GET /api/reports/quarterly`, `/api/reports/monthly-trends` - No filters
+
+Backend-specific conventions (endpoint patterns, Pydantic model rules, filter implementation) live in `server/CLAUDE.md` — read it before editing `server/main.py`.
 
 ## Common Issues
 1. Use unique keys in v-for (not `index`) - use `sku`, `month`, etc.
