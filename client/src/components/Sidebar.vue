@@ -106,7 +106,8 @@ const icons = {
   finance: '<path d="M4 16V10M10 16V4M16 16V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   demand: '<path d="M3 14L8 9L11 12L17 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5H17V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
   restocking: '<path d="M16 8C15.5 5 12.5 3 10 3C6 3 3 6 3 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 3V7H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12C4.5 15 7.5 17 10 17C14 17 17 14 17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 17V13H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
-  reports: '<path d="M6 2.5H12L15 5.5V16.5C15 17.05 14.55 17.5 14 17.5H6C5.45 17.5 5 17.05 5 16.5V3.5C5 2.95 5.45 2.5 6 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 2.5V5.5H15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7.5 9H12.5M7.5 11.5H12.5M7.5 14H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+  reports: '<path d="M6 2.5H12L15 5.5V16.5C15 17.05 14.55 17.5 14 17.5H6C5.45 17.5 5 17.05 5 16.5V3.5C5 2.95 5.45 2.5 6 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 2.5V5.5H15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7.5 9H12.5M7.5 11.5H12.5M7.5 14H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  backlog: '<path d="M10 3L17 16H3L10 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 8V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="13.5" r="0.75" fill="currentColor"/>'
 }
 
 export default {
@@ -124,7 +125,8 @@ export default {
       { path: '/inventory', labelKey: 'nav.inventory', icon: 'inventory' },
       { path: '/demand', labelKey: 'nav.demandForecast', icon: 'demand' },
       { path: '/restocking', labelKey: 'nav.restocking', icon: 'restocking' },
-      { path: '/orders', labelKey: 'nav.orders', icon: 'orders' }
+      { path: '/orders', labelKey: 'nav.orders', icon: 'orders' },
+      { path: '/backlog', labelKey: 'nav.backlog', icon: 'backlog' }
     ]
 
     const insightsItems = [
