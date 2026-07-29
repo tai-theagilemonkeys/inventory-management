@@ -63,7 +63,7 @@
                   </td>
                   <td class="col-date">{{ formatDate(order.order_date) }}</td>
                   <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                  <td class="col-value"><strong>{{ formatCurrency(order.total_value, currentCurrency) }}</strong></td>
+                  <td class="col-value"><strong>{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</strong></td>
                 </tr>
                 <tr v-if="expandedOrderIds.has(order.id)" class="items-expanded-row">
                   <td colspan="7" class="items-expanded-cell">
@@ -80,12 +80,12 @@
                           <span class="items-panel-item-sku">{{ item.sku }}</span>
                         </div>
                         <span class="items-panel-qty">{{ item.quantity }}</span>
-                        <span class="items-panel-qty">{{ formatCurrency(item.unit_price, currentCurrency) }}</span>
-                        <span class="items-panel-line-total">{{ formatCurrency(item.quantity * item.unit_price, currentCurrency) }}</span>
+                        <span class="items-panel-qty">{{ formatCurrencyWithDecimals(item.unit_price, currentCurrency, 2) }}</span>
+                        <span class="items-panel-line-total">{{ formatCurrencyWithDecimals(item.quantity * item.unit_price, currentCurrency, 2) }}</span>
                       </div>
                       <div class="items-panel-footer">
                         <span>{{ t('orders.itemsPanel.total') }}</span>
-                        <span class="items-panel-footer-value">{{ formatCurrency(order.total_value, currentCurrency) }}</span>
+                        <span class="items-panel-footer-value">{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</span>
                       </div>
                     </div>
                   </td>
@@ -174,7 +174,7 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrency } from '../utils/currency'
+import { formatCurrency, formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Orders',
@@ -290,6 +290,7 @@ export default {
       formatDate,
       currentCurrency,
       formatCurrency,
+      formatCurrencyWithDecimals,
       translateProductName,
       translateCustomerName
     }
