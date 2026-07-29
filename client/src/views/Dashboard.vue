@@ -547,18 +547,7 @@ export default {
         .slice(0, 12)
     })
 
-    const allBacklogItems = ref([])
-
-    // Filter backlog based on inventory filters
-    const backlogItems = computed(() => {
-      if (selectedLocation.value === 'all' && selectedCategory.value === 'all') {
-        return allBacklogItems.value
-      }
-
-      // Get SKUs of items that match the filters
-      const validSkus = new Set(inventoryItems.value.map(item => item.sku))
-      return allBacklogItems.value.filter(b => validSkus.has(b.item_sku))
-    })
+    const backlogItems = ref([])
 
     const loadData = async () => {
       try {
@@ -569,13 +558,13 @@ export default {
           api.getDashboardSummary(filters),
           api.getOrders(filters),
           api.getInventory(filters),
-          api.getBacklog()
+          api.getBacklog(filters)
         ])
 
         summary.value = summaryData
         allOrders.value = ordersData
         inventoryItems.value = inventoryData
-        allBacklogItems.value = backlogData
+        backlogItems.value = backlogData
       } catch (err) {
         error.value = 'Failed to load dashboard data: ' + err.message
       } finally {
@@ -666,7 +655,7 @@ export default {
 
     const handlePOCreated = (poData) => {
       // Update the backlog item with the new PO ID
-      const item = allBacklogItems.value.find(b => b.id === poData.backlog_item_id)
+      const item = backlogItems.value.find(b => b.id === poData.backlog_item_id)
       if (item) {
         item.purchase_order_id = poData.id
         item.purchase_order = poData
