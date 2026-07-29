@@ -2,23 +2,26 @@
   <div class="profile-menu">
     <button
       class="profile-button"
+      :class="{ collapsed: collapsed }"
       @click="toggleDropdown"
       @blur="handleBlur"
     >
       <div class="avatar">
         {{ getInitials(currentUser.name) }}
       </div>
-      <span class="profile-name">{{ currentUser.name }}</span>
-      <svg
-        class="chevron"
-        :class="{ 'chevron-open': isDropdownOpen }"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <template v-if="!collapsed">
+        <span class="profile-name">{{ currentUser.name }}</span>
+        <svg
+          class="chevron"
+          :class="{ 'chevron-open': isDropdownOpen }"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+        >
+          <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </template>
     </button>
 
     <div v-if="isDropdownOpen" class="dropdown-menu">
@@ -77,6 +80,13 @@
 import { ref, computed } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { useI18n } from '../composables/useI18n'
+
+defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const { currentUser, logout, getInitials } = useAuth()
 const { t } = useI18n()
@@ -138,6 +148,11 @@ const handleLogout = () => {
   border-color: #cbd5e1;
 }
 
+.profile-button.collapsed {
+  justify-content: center;
+  padding: 0.5rem;
+}
+
 .avatar {
   width: 32px;
   height: 32px;
@@ -169,8 +184,8 @@ const handleLogout = () => {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  left: calc(100% + 0.5rem);
+  bottom: 0;
   min-width: 280px;
   background: white;
   border: 1px solid #e2e8f0;

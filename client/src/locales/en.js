@@ -10,7 +10,12 @@ export default {
     reports: 'Reports',
     backlog: 'Backlog',
     companyName: 'Catalyst Components',
-    subtitle: 'Inventory Management System'
+    subtitle: 'Inventory Management System',
+    brandMark: 'CC',
+    sectionOperations: 'Operations',
+    sectionInsights: 'Insights',
+    collapseSidebar: 'Collapse sidebar',
+    expandSidebar: 'Expand sidebar'
   },
 
   // Dashboard
